@@ -1,0 +1,90 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: hoge
+  labels:
+    app: hoge
+spec:
+  ports:
+  - port: 5000
+    name: http
+  selector:
+    app: hoge
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: hoge-v1
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: hoge
+        version: v1
+    spec:
+      containers:
+      - name: hoge
+        image: istio/examples-hoge-v1
+        resources:
+          requests:
+            cpu: "100m"
+        imagePullPolicy: IfNotPresent #Always
+        ports:
+        - containerPort: 5000
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: hoge-v2
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: hoge
+        version: v2
+    spec:
+      containers:
+      - name: hoge
+        image: istio/examples-hoge-v2
+        resources:
+          requests:
+            cpu: "100m"
+        imagePullPolicy: IfNotPresent #Always
+        ports:
+        - containerPort: 5000
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: hoge-gateway
+spec:
+  selector:
+    istio: ingressgateway # use istio default controller
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: hoge
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - hoge-gateway
+  http:
+  - match:
+    - uri:
+        exact: /hello
+    route:
+    - destination:
+        host: hoge
+        port:
+          number: 5000
