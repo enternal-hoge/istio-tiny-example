@@ -7,18 +7,11 @@ See [Canary deployments using Istio](https://istio.io/blog/2017/0.1-canary.html)
 
 ## Start the services
 
-If you don't have [automatic sidecar injection](https://istio.io/docs/setup/kubernetes/sidecar-injection.html#automatic-sidecar-injection)
 set in your cluster you will need to manually inject it to the services:
 
 ```bash
 istioctl kube-inject -f hoge.yaml -o hoge-istio.yaml
 ```
-
-Note that Kubernetes [Horizontal Pod Autoscaler](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/)
-only work if all containers in the pods requests cpu. In this sample the deployment
-containers within the `hoge.yaml` are pre-defined with the request. The (manually/automatically)
-injected istio-proxy containers also have the requests cpu therefore making the `hoge`
-ready for autoscaling.
 
 Now create the deployment using the updated yaml file:
 
@@ -50,7 +43,7 @@ kubectl get hpa
 ./loadgen.sh & # run it twice to generate lots of load
 ```
 
-Wait for about 2min and check the number of replicas:
+Wait a minuts and check the number of replicas:
 
 ```bash
 kubectl get hpa
